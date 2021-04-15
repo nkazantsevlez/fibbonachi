@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -23,33 +24,54 @@ public class MainActivity extends AppCompatActivity
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void Calculatebutton_click(View view)
     {
-
-        //чтоб взять число с EditText
+        //create hundler to update the activity components from the thread
+        final Handler handler=new Handler();
+        //to take the number from EditText
         EditText inputnumbr=findViewById(R.id.inputnumber);
-        int number=Integer.parseInt(inputnumbr.getText().toString());
-        //Чтоб вывеси результат в TextView
-        TextView outputnumbr= (TextView) findViewById(R.id.OutputNumber);
-        //переменные для вычисления Фибоначчи
-        int f = 0, g = 1;
-        //чтоб работать с прогрессбаром
-        ProgressBar mProgressBar=(ProgressBar) findViewById(R.id.mprogressBar);
-        //устанавливаем минимальное и максимальное значения progressbar
+        final int number=Integer.parseInt(inputnumbr.getText().toString());
+        //To post the result in TextView
+        final TextView outputnumbr= (TextView) findViewById(R.id.OutputNumber);
+        outputnumbr.setText("0");
+        //variables for calculating Fibonacci
+        final int[] f = {0};
+        final int[] g = { 1 };
+        //to work with progress bar
+        final ProgressBar mProgressBar=(ProgressBar) findViewById(R.id.mprogressBar);
+        //set the minimum and maximum values of the progressbar
+        mProgressBar.setProgress(0);
         mProgressBar.setMax(number);
         mProgressBar.setMin(0);
-        //устанавливаем шаг
-        int counter=0;
-
-        //вычисляем число Фибоначчи
-        for (int i = 1; number>= i; i++)
-        {
-            f = f + g;
-            g = f - g;
-
-            outputnumbr.setText(String.valueOf(f));
-            counter++;
-            mProgressBar.setProgress(counter);
-
-        }
-
+        //set the step of the progress bar
+        final int[] counter = {0};
+        //create a thread
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //calculate fibonacci number
+                for (int i = 1; number>= i; i++)
+                {
+                    f[0] = f[0] + g[0];
+                    g[0] = f[0] - g[0];
+                    counter[0]++;
+                    try
+                    {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    handler.post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            //update progress bar and result
+                            outputnumbr.setText(String.valueOf(f[0]));
+                            mProgressBar.setProgress(counter[0]);
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 }
